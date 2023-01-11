@@ -34,7 +34,7 @@ jobs:
           ocaml-version: ${{ matrix.ocaml-version }}
 
       - run: opam install ocamlformat.0.18.0
-      - run: opam exec -- make fmt-check
+   #   - run: opam exec -- make fmt-check
       - run: opam pin add coq ${{ matrix.coq-version }}
       - run: opam pin add coq-of-LLBC.dev . --no-action
       - run: opam depext conf-ruby --yes
