@@ -1,0 +1,4 @@
+(executable
+ (public_name coq-of-LLBC)
+ (name main)
+ (libraries coqOfLLBC))
