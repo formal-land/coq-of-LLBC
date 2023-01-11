@@ -1,0 +1,3 @@
+[submodule "charon"]
+	path = charon
+	url = https://github.com/AeneasVerif/charon.git
