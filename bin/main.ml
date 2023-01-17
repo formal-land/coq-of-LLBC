@@ -1,5 +1,5 @@
 open Charon.Meta
-open Charon.Names
+(*open Charon.Names*)
 
 open CoqOfLLBC.LLBC
 open CoqOfLLBC.Parse
@@ -18,12 +18,11 @@ let print_file_name (name : file_name) : unit =
   print_endline str
 
 let print_def (def : definition) : unit =
-  let def_name = show_name (name_of_def def) in
   let str = (
-    match def with
-    | Type_def _ -> "\t\tType: " ^ def_name
-    | Fun_def _ -> "\t\tFunction: " ^ def_name
-    | Global_def _ -> "\t\tGlobal: " ^ def_name
+  match def with
+  | Type_def t -> "\tType:\n\t\t" ^ Charon.Types.show_type_decl_kind t.kind
+  | Fun_def f -> "\tFunction:\n\t\t" ^ Charon.GAst.show_gfun_decl
+      (fun _ st -> print_endline (Charon.LlbcAst.show_statement st)) f
   ) in
   print_endline str
 
@@ -31,6 +30,6 @@ let () =
   let file = "test/tests.llbc" in (* TODO: get from args *)
   match parse_crate file with
   | Ok crate ->
-      let assoc = get_top_sorted_compact_file_assoc crate in
+      let assoc = get_compact_file_assoc crate in
       print_compact_assoc_list print_file_name print_def assoc
   | Error msg -> print_endline msg
