@@ -6,4 +6,4 @@
 
 2) To build: `dune build`
 
-3) To run with LLBC file `file.LLBC`: `dun exec bin/main.exe file.LLBC`
+3) To run with LLBC file `file.LLBC`: `dune exec bin/main.exe file.LLBC`
