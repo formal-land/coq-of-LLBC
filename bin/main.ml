@@ -3,8 +3,15 @@ open CoqOfLLBC.Parse
 open CoqOfLLBC.Token
 open CoqOfLLBC.Util
 
+exception Argument_not_given of string
+
 let () =
-  let file = "test/tests.llbc" in (* TODO: get from args *)
+  let args = Sys.argv in
+  let () =
+    if Array.length args < 2
+    then raise (Argument_not_given "Please supply an LLBC file")
+    else () in
+  let file = Array.get args 1 in
   match parse_crate file with
   | Ok crate ->
       let assoc = get_compact_file_assoc crate in
