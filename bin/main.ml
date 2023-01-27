@@ -1,35 +1,18 @@
-open Charon.Meta
-(*open Charon.Names*)
-
 open CoqOfLLBC.LLBC
 open CoqOfLLBC.Parse
+open CoqOfLLBC.Token
 open CoqOfLLBC.Util
-
-(* some debugging code for now *)
-let print_compact_assoc_list (print_a : 'a -> unit) (print_b : 'b -> unit)
-  (ps : ('a, 'b) compact_assoc_list) : unit =
-  List.iter (fun (a,bs) ->
-    let () = print_a a in
-    List.iter print_b bs
-  ) ps
-
-let print_file_name (name : file_name) : unit =
-  let str = show_file_name name ^ ":" in
-  print_endline str
-
-let print_def (def : definition) : unit =
-  let str = (
-  match def with
-  | Type_def t -> "\tType:\n\t\t" ^ Charon.Types.show_type_decl_kind t.kind
-  | Fun_def f -> "\tFunction:\n\t\t" ^ Charon.GAst.show_gfun_decl
-      (fun _ st -> print_endline (Charon.LlbcAst.show_statement st)) f
-  ) in
-  print_endline str
 
 let () =
   let file = "test/tests.llbc" in (* TODO: get from args *)
   match parse_crate file with
   | Ok crate ->
       let assoc = get_compact_file_assoc crate in
-      print_compact_assoc_list print_file_name print_def assoc
+      let toks_assoc = toks_of_compact_assoc assoc in
+      let string_assoc = assoc_list_map print_tokens toks_assoc in
+      let string_assoc_with_paths = assoc_list_key_map coq_filename_of_file_name string_assoc in
+      List.iter (fun ((path, file), text) ->
+        let () = try_mkdirs path in
+        let file_path = String.concat "/" path ^ "/" ^ file in
+        output_string (open_out file_path) text) string_assoc_with_paths
   | Error msg -> print_endline msg

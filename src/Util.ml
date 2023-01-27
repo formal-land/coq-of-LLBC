@@ -2,9 +2,25 @@ let pair a b = (a,b)
 
 let swap (a,b) = (b,a)
 
+let cons x l = x :: l
+
+let rec ne_prefixes xs =
+  match xs with
+  | [] -> []
+  | x :: ys -> [x] :: List.map (cons x) (ne_prefixes ys)
+
 type ('a, 'b) assoc_list = ('a * 'b) list
 
 type ('a, 'b) compact_assoc_list = ('a * 'b list) list
+
+let assoc_list_key_map (f : 'a -> 'b) (ps : ('a, 'c) assoc_list) : ('b, 'c) assoc_list =
+  List.map (fun (k,v) -> (f k, v)) ps
+
+let assoc_list_map (f : 'b -> 'c) (ps : ('a, 'b) assoc_list) : ('a, 'c) assoc_list =
+  List.map (fun (k,v) -> (k, f v)) ps
+
+let compact_assoc_list_map (f : 'b -> 'c) (ps : ('a, 'b) compact_assoc_list) : ('a, 'c) compact_assoc_list =
+  List.map (fun (k,vs) -> (k, List.map f vs)) ps
 
 let assoc_list_of_compact_assoc_list
   (ps : ('a, 'b) compact_assoc_list) : ('a, 'b) assoc_list =
@@ -30,3 +46,6 @@ let opp_compact_assoc_list (ps : ('a, 'b) compact_assoc_list) : ('b, 'a) compact
   let ps = assoc_list_of_compact_assoc_list ps in
   let ps = opp_assoc_list ps in
   compact_assoc_list_of_assoc_list ps
+
+let concat_compact_assoc_list (ps : ('a, 'b list) compact_assoc_list) : ('a, 'b list) assoc_list =
+  List.map (fun (k,ls) -> (k, List.concat ls)) ps
