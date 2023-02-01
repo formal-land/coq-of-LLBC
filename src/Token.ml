@@ -1,11 +1,12 @@
 open Charon.LlbcAst
 open Charon.Meta
 open Charon.Types
+open Charon.Names
 
 open LLBC
 open Util
 
-(* coq tokens *)
+(* coq tokens and whitespace *)
 type token =
   | Newline
   | Tab
@@ -16,6 +17,22 @@ type token =
   | Let
   | In
   | Id of string
+  | Colon
+  | Set
+  | Record
+  | Axiom
+  | Arrow
+  | LCurly
+  | RCurly
+  | Semicolon
+  | LParen
+  | RParen
+  | Bool
+  | Ascii
+  | Empty_set
+  | Z
+  | String
+  | Array
 
 let print_token = function
   | Newline -> "\n"
@@ -27,12 +44,85 @@ let print_token = function
   | Let -> "let"
   | In -> "in"
   | Id str -> str
+  | Colon -> ":"
+  | Set -> "Set"
+  | Record -> "Record"
+  | Axiom -> "Axiom"
+  | Arrow -> "->"
+  | LCurly -> "{"
+  | RCurly -> "}"
+  | Semicolon -> ";"
+  | LParen -> "("
+  | RParen -> ")"
+  | Bool -> "bool"
+  | Ascii -> "ascii"
+  | Empty_set -> "Empty_set"
+  | Z -> "Z"
+  | String -> "string"
+  | Array -> "array"
 
 let print_tokens toks =
   String.concat "" (List.map print_token toks)
 
-let toks_of_type_decl (_type_dec : type_decl) : token list =
-  [Def; Newline; Newline] (*TODO*)
+let last_str name =
+  let elem = last name in
+  match elem with
+  | Ident str -> str
+  | Disambiguator _ -> failwith "Disambiguator encountered."
+
+(* token of name, ignoring path *)
+let tok_of_name name =
+  Id (last_str name)
+
+let tok_of_ty_var (var : type_var) =
+  Id var.name
+
+let toks_of_ty_vars (vars : type_var list) =
+  intersperse Space (List.map tok_of_ty_var vars)
+
+let rec arity_n_set_sig n =
+  if n = 0 then [Set] else
+  [Set; Space; Arrow; Space] @ arity_n_set_sig (n-1)
+
+let rec toks_of_ty (ty_params : type_var list) = function
+  | Adt (_id, _, _ts) -> [] (* TODO: lookup *)
+  | TypeVar id ->
+      let var = TypeVarId.nth ty_params id in
+      [Id var.name]
+  | Bool -> [Bool]
+  | Char -> [Ascii]
+  | Never -> [Empty_set]
+  | Integer _ -> [Z] (* TODO *)
+  | Str -> [String]
+  | Array t -> [Array; Space; LParen] @ toks_of_ty ty_params t @ [RParen]
+  | _ -> failwith "not implemented"
+
+let toks_of_field ty_params fld =
+  match fld.field_name with
+  | None -> failwith "not implemented"
+  | Some name ->
+      [Tab; Id name; Space; Colon; Space] @
+      toks_of_ty ty_params fld.field_ty @
+      [Semicolon; Newline]
+
+let toks_of_type_decl (type_dec : type_decl) : token list =
+  match type_dec.kind with
+  | Struct fields ->
+      [Record; Space; tok_of_name type_dec.name; Space] @
+      toks_of_ty_vars type_dec.type_params @
+      [Space; Colon; Space; Set; Space; DefEq; Space; LCurly; Newline] @
+      List.concat_map (toks_of_field type_dec.type_params) fields @ 
+      [Tab; RCurly; FullStop; Newline; Newline]
+  | Enum _ ->
+      [ Def; Space; tok_of_name type_dec.name; Space ] @
+      toks_of_ty_vars type_dec.type_params @
+      [Space; Colon; Space; Set; Space; DefEq; Newline;
+      Tab; Id "TODO"; FullStop; Newline; Newline
+      ]
+  | Opaque ->
+      [ Axiom; Space; tok_of_name type_dec.name; Space] @
+      arity_n_set_sig (List.length type_dec.type_params) @
+      [FullStop; Newline; Newline]
 
 let toks_of_fun_decl (_fun_dec : fun_decl) : token list =
   [Def; Newline; Newline] (* TODO *)

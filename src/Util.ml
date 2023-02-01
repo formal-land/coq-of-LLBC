@@ -4,6 +4,17 @@ let swap (a,b) = (b,a)
 
 let cons x l = x :: l
 
+let rec last xs =
+  match xs with
+  | [] -> failwith "empty list"
+  | [x] -> x
+  | _ :: xs -> last xs
+
+let rec intersperse sep xs =
+  match xs with
+  | [] | [_] -> xs
+  | x :: xs -> x :: sep :: intersperse sep xs
+
 let rec ne_prefixes xs =
   match xs with
   | [] -> []
