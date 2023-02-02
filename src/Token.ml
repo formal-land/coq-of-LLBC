@@ -33,6 +33,8 @@ type token =
   | Z
   | String
   | Array
+  | Inductive
+  | Vert
 
 let print_token = function
   | Newline -> "\n"
@@ -60,6 +62,8 @@ let print_token = function
   | Z -> "Z"
   | String -> "string"
   | Array -> "array"
+  | Inductive -> "Inductive"
+  | Vert -> "|"
 
 let print_tokens toks =
   String.concat "" (List.map print_token toks)
@@ -99,11 +103,23 @@ let rec toks_of_ty (ty_params : type_var list) = function
 
 let toks_of_field ty_params fld =
   match fld.field_name with
-  | None -> failwith "not implemented"
+  | None -> failwith "empty field name not implemented."
   | Some name ->
-      [Tab; Id name; Space; Colon; Space] @
-      toks_of_ty ty_params fld.field_ty @
-      [Semicolon; Newline]
+      [Id name; Space; Colon; Space] @
+      toks_of_ty ty_params fld.field_ty
+
+let toks_of_field_in_record ty_params fld =
+  Tab ::
+  toks_of_field ty_params fld @
+  [Semicolon; Newline]
+
+let add_parens toks =
+  LParen :: toks @ [RParen]
+
+let toks_of_variant ty_params var =
+  [Tab; Vert; Space; Id (var.variant_name); Space] @
+  List.concat_map (fun fld -> add_parens (toks_of_field ty_params fld)) var.fields @
+  [Newline]
 
 let toks_of_type_decl (type_dec : type_decl) : token list =
   match type_dec.kind with
@@ -111,14 +127,14 @@ let toks_of_type_decl (type_dec : type_decl) : token list =
       [Record; Space; tok_of_name type_dec.name; Space] @
       toks_of_ty_vars type_dec.type_params @
       [Space; Colon; Space; Set; Space; DefEq; Space; LCurly; Newline] @
-      List.concat_map (toks_of_field type_dec.type_params) fields @ 
+      List.concat_map (toks_of_field_in_record type_dec.type_params) fields @ 
       [Tab; RCurly; FullStop; Newline; Newline]
-  | Enum _ ->
+  | Enum variants ->
       [ Def; Space; tok_of_name type_dec.name; Space ] @
       toks_of_ty_vars type_dec.type_params @
-      [Space; Colon; Space; Set; Space; DefEq; Newline;
-      Tab; Id "TODO"; FullStop; Newline; Newline
-      ]
+      [Space; Colon; Space; Set; Space; DefEq; Newline] @
+      List.concat_map (toks_of_variant type_dec.type_params) variants @
+      [Tab; FullStop; Newline; Newline]
   | Opaque ->
       [ Axiom; Space; tok_of_name type_dec.name; Space] @
       arity_n_set_sig (List.length type_dec.type_params) @
