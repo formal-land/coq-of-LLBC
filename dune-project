@@ -5,22 +5,9 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
-
-(authors "Author Name")
-
-(maintainers "Maintainer Name")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+ (github formal-land/coq-of-LLBC))
 
 (package
  (name coq-of-LLBC)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
- (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
+ (synopsis "Translation of LLBC into Coq")
+ (depends (ocaml (>= 4.13)) dune yojson easy_logging zarith visitors))

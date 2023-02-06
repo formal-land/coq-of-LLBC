@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
   build:
@@ -16,9 +16,7 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-version:
-          - 4.12.0
-        coq-version:
-          - 8.13.1
+          - 4.13.0
 
     runs-on: ${{ matrix.os }}
 
@@ -26,20 +24,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: 'true'
+          submodules: "true"
 
       - name: Use OCaml ${{ matrix.ocaml-version }}
         uses: avsm/setup-ocaml@v1
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
 
-   #   - run: opam install ocamlformat.0.18.0
-   #   - run: opam exec -- make fmt-check
-      - run: opam install yojson
-      - run: opam pin add coq ${{ matrix.coq-version }}
+      - run: git submodule update --init
       - run: opam pin add coq-of-LLBC.dev . --no-action
       - run: opam depext conf-ruby --yes
       - run: opam install coq-of-LLBC --deps-only
       - run: opam install coq-of-LLBC --verbose
-      - run: opam exec -- make coverage
-      - run: opam exec -- bisect-ppx-report send-to Codecov
+      - run: opam exec -- dune build
