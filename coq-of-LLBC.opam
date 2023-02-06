@@ -4,7 +4,7 @@ synopsis: "Translation of LLBC into Coq"
 homepage: "https://github.com/formal-land/coq-of-LLBC"
 bug-reports: "https://github.com/formal-land/coq-of-LLBC/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.13"}
   "dune" {>= "3.6"}
   "yojson"
   "easy_logging"
