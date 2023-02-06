@@ -9,6 +9,7 @@ depends: [
   "yojson"
   "easy_logging"
   "zarith"
+  "visitors"
   "odoc" {with-doc}
 ]
 build: [
