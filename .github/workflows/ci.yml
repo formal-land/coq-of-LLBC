@@ -36,4 +36,4 @@ jobs:
       - run: opam depext conf-ruby --yes
       - run: opam install coq-of-LLBC --deps-only
       - run: opam install coq-of-LLBC --verbose
-      - run: dune build
+      - run: opam exec -- dune build
