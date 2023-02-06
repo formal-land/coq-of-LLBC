@@ -7,6 +7,7 @@ depends: [
   "ocaml"
   "dune" {>= "3.6"}
   "yojson"
+  "easy_logging"
   "odoc" {with-doc}
 ]
 build: [
