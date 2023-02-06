@@ -8,6 +8,7 @@ depends: [
   "dune" {>= "3.6"}
   "yojson"
   "easy_logging"
+  "zarith"
   "odoc" {with-doc}
 ]
 build: [

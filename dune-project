@@ -10,4 +10,4 @@
 (package
  (name coq-of-LLBC)
  (synopsis "Translation of LLBC into Coq")
- (depends ocaml dune yojson easy_logging))
+ (depends ocaml dune yojson easy_logging zarith))
