@@ -81,8 +81,16 @@ let tok_of_name name =
 let tok_of_ty_var (var : type_var) =
   Id var.name
 
+let toks_of_var (v : var) =
+  match v.name with
+  | None -> []
+  | Some name -> [Id name]
+
 let toks_of_ty_vars (vars : type_var list) =
   intersperse Space (List.map tok_of_ty_var vars)
+
+let toks_of_vars vs =
+  intersperse Space (List.concat_map toks_of_var vs)
 
 let rec arity_n_set_sig n =
   if n = 0 then [Set] else
@@ -140,8 +148,22 @@ let toks_of_type_decl (type_dec : type_decl) : token list =
       arity_n_set_sig (List.length type_dec.type_params) @
       [FullStop; Newline; Newline]
 
-let toks_of_fun_decl (_fun_dec : fun_decl) : token list =
-  [Def; Newline; Newline] (* TODO *)
+let toks_of_raw_statement _stmt = []
+
+let toks_of_statement stmt =
+  toks_of_raw_statement stmt.content
+
+let toks_of_opt_body obody =
+  match obody with
+  | None -> failwith "No body."
+  | Some body -> toks_of_vars body.locals @
+      [Space; DefEq; Newline] @
+      toks_of_statement body.body
+
+let toks_of_fun_decl (fun_dec : fun_decl) : token list =
+  [Def; Space; tok_of_name fun_dec.name; Space] @
+  toks_of_opt_body fun_dec.body @
+  [FullStop; Newline; Newline]
 
 let toks_of_definition = function
   | Type_def t -> toks_of_type_decl t
