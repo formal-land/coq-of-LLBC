@@ -2,6 +2,7 @@ open Charon.LlbcAst
 open Charon.Meta
 open Charon.Types
 open Charon.Names
+open Charon.Expressions
 
 open LLBC
 open Util
@@ -148,17 +149,39 @@ let toks_of_type_decl (type_dec : type_decl) : token list =
       arity_n_set_sig (List.length type_dec.type_params) @
       [FullStop; Newline; Newline]
 
-let toks_of_raw_statement _stmt = []
+let rec toks_of_raw_statement vars stmt =
+  Tab ::
+    match stmt with
+    | Assign (pl,_rval) ->
+        let (var : var) = VarId.nth vars pl.var_id in
+        let name = (
+          match var.name with
+          | None -> "ERROR" (* TODO: it seems like only this branch is called *)
+          | Some n -> n) in
+     [Let; Space; Id "something"; Space; DefEq; Space; Id name; Space; In; Newline; Tab]
+    | Sequence (stmt1, stmt2) -> toks_of_statement vars stmt1 @ toks_of_statement vars stmt2
+    (* debugging code *)
+    | FakeRead _ -> [Id "FakeRead"]
+    | SetDiscriminant (_,_) -> [Id "SetDisc"]
+    | Drop _ -> []
+    | Assert _ -> [Id "Assert"]
+    | Call _ -> [Id "Call"]
+    | Panic -> [Id "Panic"]
+    | Return -> [Id "Return"]
+    | Break _ -> [Id "Break"]
+    | Continue _ -> [Id "Cont"]
+    | Nop -> [Id "Nop"]
+    | _ -> []
 
-let toks_of_statement stmt =
-  toks_of_raw_statement stmt.content
+and toks_of_statement vars stmt =
+  toks_of_raw_statement vars stmt.content
 
 let toks_of_opt_body obody =
   match obody with
   | None -> failwith "No body."
   | Some body -> toks_of_vars body.locals @
       [Space; DefEq; Newline] @
-      toks_of_statement body.body
+      toks_of_statement body.locals body.body
 
 let toks_of_fun_decl (fun_dec : fun_decl) : token list =
   [Def; Space; tok_of_name fun_dec.name; Space] @
